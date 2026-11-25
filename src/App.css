@@ -23,6 +23,85 @@
   color: #566174;
 }
 
+.access-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 20px 24px;
+  border: 1px solid #dce2eb;
+  border-radius: 12px;
+  background: #fff;
+  box-shadow: 0 8px 24px rgb(25 42 70 / 8%);
+}
+
+.access-panel h2 {
+  margin: 0;
+  font-size: 1.125rem;
+}
+
+.access-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.access-toggle {
+  flex: 0 0 auto;
+  padding: 8px 12px;
+  border: 1px solid #c7cfdb;
+  border-radius: 8px;
+  background: #fff;
+  color: #2459a6;
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.access-status {
+  margin: 4px 0 0;
+  color: #566174;
+  font-size: 0.9rem;
+}
+
+.token-form label,
+.chat-form label {
+  display: block;
+  margin-bottom: 8px;
+  font-size: 0.9rem;
+  font-weight: 600;
+}
+
+.token-form__controls {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 12px;
+  align-items: end;
+}
+
+.token-form input {
+  width: 100%;
+  min-height: 44px;
+  padding: 10px 12px;
+  border: 1px solid #c7cfdb;
+  border-radius: 8px;
+  color: inherit;
+  font: inherit;
+}
+
+.chat-locked {
+  margin: 0;
+  color: #566174;
+  font-size: 0.9rem;
+}
+
+.chat-locked {
+  padding: 20px 24px;
+  border: 1px dashed #c7cfdb;
+  border-radius: 12px;
+  text-align: center;
+}
+
 .chat-panel {
   overflow: hidden;
   border: 1px solid #dce2eb;
@@ -93,13 +172,6 @@
   border-top: 1px solid #e5e9f0;
 }
 
-.chat-form label {
-  display: block;
-  margin-bottom: 8px;
-  font-size: 0.9rem;
-  font-weight: 600;
-}
-
 .chat-form__controls {
   display: grid;
   grid-template-columns: 1fr auto;
@@ -118,12 +190,16 @@
   font: inherit;
 }
 
+.token-form input:focus-visible,
+.token-form button:focus-visible,
+.access-toggle:focus-visible,
 .chat-form textarea:focus-visible,
 .chat-form button:focus-visible {
   outline: 3px solid #8bb8ff;
   outline-offset: 2px;
 }
 
+.token-form button,
 .chat-form button {
   min-height: 44px;
   padding: 0 20px;
@@ -136,6 +212,7 @@
   cursor: pointer;
 }
 
+.token-form button:disabled,
 .chat-form button:disabled {
   background: #aab4c3;
   cursor: not-allowed;
@@ -162,6 +239,11 @@
     grid-template-columns: 1fr;
   }
 
+  .token-form__controls {
+    grid-template-columns: 1fr;
+  }
+
+  .token-form button,
   .chat-form button {
     justify-self: end;
   }
