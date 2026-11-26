@@ -1,13 +1,13 @@
 import { useState, type SubmitEvent } from 'react'
 
 type AccessPanelProps = {
-  token: string
+  hasToken: boolean
   onAuthenticate: (token: string) => void
 }
 
-function AccessPanel({ token, onAuthenticate }: AccessPanelProps) {
+function AccessPanel({ hasToken, onAuthenticate }: AccessPanelProps) {
   const [tokenDraft, setTokenDraft] = useState('')
-  const [isAccessOpen, setIsAccessOpen] = useState(!token)
+  const [isAccessOpen, setIsAccessOpen] = useState(!hasToken)
 
   function handleAuthenticate(event: SubmitEvent<HTMLFormElement>) {
     event.preventDefault() // prevent reload
@@ -28,7 +28,7 @@ function AccessPanel({ token, onAuthenticate }: AccessPanelProps) {
         <div>
           <h2 id="access-heading">Backend access</h2>
           <p className="access-status" role="status">
-            {token
+            {hasToken
               ? 'Token stored for this tab session.'
               : 'Enter a token to unlock the chat.'}
           </p>
@@ -40,7 +40,7 @@ function AccessPanel({ token, onAuthenticate }: AccessPanelProps) {
           onClick={() => setIsAccessOpen((isOpen) => !isOpen)}
           type="button"
         >
-          {isAccessOpen ? 'Close' : token ? 'Change token' : 'Enter token'}
+          {isAccessOpen ? 'Close' : hasToken ? 'Change token' : 'Enter token'}
         </button>
       </div>
       <div hidden={!isAccessOpen} id="access-token-form">

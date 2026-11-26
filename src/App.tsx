@@ -1,18 +1,43 @@
 import { useState } from 'react'
 import AccessPanel from './components/AccessPanel'
 import ChatPanel from './components/ChatPanel'
+import { BackendService, type BackendClient } from './services/BackendService'
+import { BackendServiceMock } from './services/BackendServiceMock'
 import './App.css'
 
 const TOKEN_STORAGE_KEY = 'ai-investigation-assistant:backend-token'
 
+function createBackendClient(token: string): BackendClient {
+  const backendMode = import.meta.env.VITE_BACKEND_MODE ?? 'mock'
+
+  if (backendMode === 'mock') {
+    return new BackendServiceMock(token)
+  }
+
+  if (backendMode === 'real') {
+    const baseUrl = (import.meta.env.VITE_API_BASE_URL ?? '').replace(
+      /\/+$/,
+      '',
+    )
+    return new BackendService(baseUrl, token)
+  }
+
+  throw new Error(`Unknown backend mode: ${backendMode}`)
+}
+
 function App() {
-  const [token, setToken] = useState(
-    () => sessionStorage.getItem(TOKEN_STORAGE_KEY) ?? '',
+  const [backendService] = useState(
+    () => {
+      const token = sessionStorage.getItem(TOKEN_STORAGE_KEY) ?? ''
+      return createBackendClient(token)
+    },
   )
+  const [hasToken, setHasToken] = useState(() => backendService.hasToken)
 
   function handleAuthenticate(newToken: string) {
     sessionStorage.setItem(TOKEN_STORAGE_KEY, newToken)
-    setToken(newToken)
+    backendService.setToken(newToken)
+    setHasToken(backendService.hasToken)
   }
 
   return (
@@ -23,10 +48,10 @@ function App() {
           <p>Ask a question to try the chat.</p>
         </header>
 
-        <AccessPanel token={token} onAuthenticate={handleAuthenticate} />
+        <AccessPanel hasToken={hasToken} onAuthenticate={handleAuthenticate} />
 
-        {token ? (
-          <ChatPanel />
+        {hasToken ? (
+          <ChatPanel backend={backendService} />
         ) : (
           <p className="chat-locked">
             The chat will be available after you authenticate.

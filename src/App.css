@@ -114,6 +114,21 @@
   text-align: center;
 }
 
+.chat-status,
+.chat-error {
+  margin: 0;
+  padding: 12px 24px;
+}
+
+.chat-status {
+  color: #566174;
+}
+
+.chat-error {
+  color: #a12622;
+  background: #fff0ef;
+}
+
 .chat-messages {
   display: flex;
   flex-direction: column;

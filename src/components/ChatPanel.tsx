@@ -1,43 +1,81 @@
 import { useState, type SubmitEvent } from 'react'
+import {
+  type BackendClient,
+  BackendServiceError,
+  type ResponseMessage,
+} from '../services/BackendService'
 
-type MessageRole = 'user' | 'assistant'
-
-type ChatMessage = {
+type ChatMessage = ResponseMessage & {
   id: string
-  role: MessageRole
-  content: string
 }
 
-const MOCK_ASSISTANT_RESPONSE =
-  'Das ist eine simulierte Antwort. Im nächsten Schritt verbinden wir den Chat mit dem Backend.'
+type ChatPanelProps = {
+  backend: BackendClient
+}
 
-function ChatPanel() {
+function ChatPanel({ backend }: ChatPanelProps) {
   const [messages, setMessages] = useState<ChatMessage[]>([])
   const [input, setInput] = useState('')
+  const [isLoading, setIsLoading] = useState(false)
+  const [errorMessage, setErrorMessage] = useState('')
 
-  function handleSubmit(event: SubmitEvent<HTMLFormElement>) {
+  async function handleSubmit(event: SubmitEvent<HTMLFormElement>) {
     event.preventDefault()
 
     const content = input.trim()
-    if (!content) {
+    if (!content || isLoading) {
       return
     }
 
-    const newMessages: ChatMessage[] = [
-      { id: crypto.randomUUID(), role: 'user', content },
-      {
-        id: crypto.randomUUID(),
-        role: 'assistant',
-        content: MOCK_ASSISTANT_RESPONSE,
-      },
+    const userMessage: ChatMessage = {
+      id: crypto.randomUUID(),
+      role: 'user',
+      content,
+    }
+    const conversation: ResponseMessage[] = [
+      ...messages.map(({ role, content: messageContent }) => ({
+        role,
+        content: messageContent,
+      })),
+      { role: userMessage.role, content: userMessage.content },
     ]
 
-    setMessages((currentMessages) => [...currentMessages, ...newMessages])
+    setMessages((currentMessages) => [...currentMessages, userMessage])
     setInput('')
+    setErrorMessage('')
+    setIsLoading(true)
+
+    try {
+      const responseText = await backend.createResponse(conversation)
+      setMessages((currentMessages) => [
+        ...currentMessages,
+        {
+          id: crypto.randomUUID(),
+          role: 'assistant',
+          content: responseText,
+        },
+      ])
+    } catch (error: unknown) {
+      setMessages((currentMessages) =>
+        currentMessages.filter((message) => message.id !== userMessage.id),
+      )
+      setInput(content)
+      setErrorMessage(
+        error instanceof BackendServiceError
+          ? error.message
+          : 'Could not reach the backend. Check that it is running and the URL is correct.',
+      )
+    } finally {
+      setIsLoading(false)
+    }
   }
 
   return (
-    <section className="chat-panel" aria-label="Chat">
+    <section
+      aria-busy={isLoading}
+      className="chat-panel"
+      aria-label="Chat"
+    >
       {messages.length === 0 ? (
         <p className="chat-empty">No messages yet.</p>
       ) : (
@@ -56,18 +94,30 @@ function ChatPanel() {
         </ol>
       )}
 
+      {isLoading && (
+        <p className="chat-status" role="status">
+          Assistant is thinking...
+        </p>
+      )}
+      {errorMessage && (
+        <p className="chat-error" role="alert">
+          {errorMessage}
+        </p>
+      )}
+
       <form className="chat-form" onSubmit={handleSubmit}>
         <label htmlFor="chat-input">Your message</label>
         <div className="chat-form__controls">
           <textarea
+            disabled={isLoading}
             id="chat-input"
             onChange={(event) => setInput(event.target.value)}
             placeholder="Schreibe deine Frage..."
             rows={4}
             value={input}
           />
-          <button disabled={!input.trim()} type="submit">
-            Send
+          <button disabled={!input.trim() || isLoading} type="submit">
+            {isLoading ? 'Sending...' : 'Send'}
           </button>
         </div>
       </form>
